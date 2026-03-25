@@ -1,4 +1,4 @@
-## Plotting examples (Intro to R)
+## Plotting examples (Intro to R - March 26)
 ## Justin Laiti
 
 # install packages if you don't have them already:
@@ -12,15 +12,23 @@ library(tidyverse)
 library(magrittr)
 library(lubridate)
 
-## Section 1: read data
-data <- read.csv('self_tracking_data.csv') #if the data isn't in the same location as the R code, you will need to include the full file location
-#data$steps[] 
+## Step 1: Read data
+data <- read.csv('data/self_tracking_data.csv') #if the data isn't in the same location as the R code, you will need to include the full file location
 
-# wrangling data ----
+## Step 2: Inspect/explore the data
+tibble(data) 
+data$steps 
+summary(data)
 
-# select
+## Step 3 wrangling data
+
+# select specific columns
+data %>% select(timestamp, steps, weather)
+steps_and_weather_data <- data %>% select(timestamp, steps, weather) # <- and = both assign a new value
+
+# overwrite the data with %<>% 
 data %<>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather)
-data <- data %>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather)
+# data <- data %>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather) #this does the same thing
 
 # filter
 data %<>% filter(resting_heart_rate > 60)
@@ -32,20 +40,27 @@ data %<>% mutate(time = as.POSIXct(timestamp, format = "%Y-%m-%dT%H:%M:%S", tz =
 
 # create groups based on day of the week (dow)
 # then, summarize the mean and std of steps in each group
-summary <- data %>% group_by(dow) %>% summarize(count = n(), mean_steps = mean(steps), sd_steps = sd(steps))
-sum(summary$count)
+grouped_data <- data %>% group_by(dow) 
+daily_step_summary_data <- grouped_data %>% summarize(count = n(), mean_steps = mean(steps), sd_steps = sd(steps))
  
-# tibble
-tibble(summary)
+# inspect data again
+tibble(daily_step_summary_data)
  
  
-# plotting data ----
+# Step 4: plotting data
+
+# general ggplot formula:
+# ggplot(YOUR_DATA, aes(x = X_VARIABLE, y = Y_VARIABLE, other asethetic options))  # data & aesthetics
+#   geom_point() / geom_line() / geom_bar() / geom_boxplot() +     # plot type
+#   ggtitle("Title") +                                             # labels
+#   scale_x_continuous(name = "X Label") +                         # axis formatting
+#   theme(...)                                                     # styling
  
 # line plot
 ggplot(data, aes(x = time, y = steps, color = resting_heart_rate)) +
   geom_point() +
   geom_line() +
-  ggtitle("Figure 1: Line Plot") +
+  ggtitle("Line Plot") +
   theme(legend.position = 'top') +
   scale_x_datetime(name = "Date") +
   scale_y_continuous(name = "Steps") +
@@ -53,24 +68,11 @@ ggplot(data, aes(x = time, y = steps, color = resting_heart_rate)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
  
 # bar plot
-summary <- data %>% group_by(dow) %>% summarize(mean = mean(steps), sd = sd(steps))
- 
-ggplot(summary, aes(x = dow, y = mean)) +
+ggplot(daily_step_summary_data, aes(x = dow, y = mean_steps)) +
   geom_bar(stat = "identity") +
-  geom_errorbar(width = 0.3, aes(ymin = mean - sd, ymax = mean + sd)) +
-  ggtitle("Figure 2: Bar Plot") +
+  geom_errorbar(width = 0.3, aes(ymin = mean_steps - sd_steps, ymax = mean_steps + sd_steps)) +
+  ggtitle("Bar Plot") +
   scale_x_discrete(name = "Day of the Week") +
-  scale_y_continuous(name = "Steps") +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
- 
-# bar plot by weather
-summary_weather <- data %>% group_by(weather) %>% summarize(mean = mean(steps), sd = sd(steps))
- 
-ggplot(summary_weather, aes(x = weather, y = mean, fill = weather)) +
-  geom_bar(stat = "identity") +
-  geom_errorbar(width = 0.3, aes(ymin = mean - sd, ymax = mean + sd)) +
-  ggtitle("Figure 3: Bar Plot by Weather") +
-  scale_x_discrete(name = "Weather") +
   scale_y_continuous(name = "Steps") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
  
@@ -78,7 +80,7 @@ ggplot(summary_weather, aes(x = weather, y = mean, fill = weather)) +
 ggplot(data, aes(x = sleep_hours, y = steps, color = weather)) +
   geom_point(size = 3) +
   geom_smooth(method = "lm", se = TRUE, color = "black", linetype = "dashed") +
-  ggtitle("Figure 5: Scatter Plot") +
+  ggtitle("Scatter Plot") +
   scale_x_continuous(name = "Sleep (hours)") +
   scale_y_continuous(name = "Steps") +
   theme(legend.position = 'top') +
@@ -87,7 +89,7 @@ ggplot(data, aes(x = sleep_hours, y = steps, color = weather)) +
 # box plot
 ggplot(data, aes(x = weather, y = steps, fill = weather)) +
   geom_boxplot() +
-  ggtitle("Figure 6: Box Plot") +
+  ggtitle("Box Plot") +
   scale_x_discrete(name = "Weather") +
   scale_y_continuous(name = "Steps") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
@@ -95,16 +97,7 @@ ggplot(data, aes(x = weather, y = steps, fill = weather)) +
 # histogram
 ggplot(data, aes(x = steps)) +
   geom_histogram(bins = 10, fill = "steelblue", color = "white") +
-  ggtitle("Figure 7: Histogram") +
+  ggtitle("Histogram") +
   scale_x_continuous(name = "Steps") +
   scale_y_continuous(name = "Count") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
-
-
-# Other data wrangling
-# gather, group, and summarize
-data_long <- data %>% gather(feature, value, -c(time, dow, weather))
-summary <- data_long %>% group_by(feature) %>% summarize(avg_value = mean(value), sd_value = sd(value))
-
-# spread
-data_wide <- data_long %>% spread(feature, value)

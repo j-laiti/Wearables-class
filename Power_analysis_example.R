@@ -1,7 +1,7 @@
 # Example power analysis
 
 # Install the pwr package the first time running this code (uncomment the line below)
-install.packages("pwr")
+# install.packages("pwr")
 
 # clear workspace
 rm(list = ls())
