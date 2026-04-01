@@ -8,7 +8,7 @@ library(tidyverse)
 library(magrittr)
 
 # load data
-data <- read.csv('Mini-Project 6/rrData.csv') # data should be 250 obs. x 4 variables
+data <- read.csv('Mini-Project 6/rrData.csv') # adjust path to where your .csv file is, data should be 250 obs. x 4 variables
 data$participant <- factor(data$participant) # make participant variable a factor
 table(data$participant) # should be 10 repeats per participant
 
