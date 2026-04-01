@@ -17,7 +17,7 @@ data <- read.csv('data/self_tracking_data.csv') #if the data isn't in the same l
 
 ## Step 2: Inspect/explore the data
 tibble(data) 
-data$steps 
+data$steps[1:5] 
 summary(data)
 
 ## Step 3 wrangling data
@@ -27,8 +27,8 @@ data %>% select(timestamp, steps, weather)
 steps_and_weather_data <- data %>% select(timestamp, steps, weather) # <- and = both assign a new value
 
 # overwrite the data with %<>% 
-data %<>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather)
-# data <- data %>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather) #this does the same thing
+data <- data %>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather) 
+data %<>% select(timestamp, steps, resting_heart_rate, sleep_hours, weather) #this does the same thing
 
 # filter
 data %<>% filter(resting_heart_rate > 60)
@@ -50,7 +50,7 @@ tibble(daily_step_summary_data)
 # Step 4: plotting data
 
 # general ggplot formula:
-# ggplot(YOUR_DATA, aes(x = X_VARIABLE, y = Y_VARIABLE, other asethetic options))  # data & aesthetics
+# ggplot(YOUR_DATA, aes(x = X_VARIABLE, y = Y_VARIABLE, other asethetic options)) + # data & aesthetics
 #   geom_point() / geom_line() / geom_bar() / geom_boxplot() +     # plot type
 #   ggtitle("Title") +                                             # labels
 #   scale_x_continuous(name = "X Label") +                         # axis formatting
@@ -68,7 +68,7 @@ ggplot(data, aes(x = time, y = steps, color = resting_heart_rate)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank())
  
 # bar plot
-ggplot(daily_step_summary_data, aes(x = dow, y = mean_steps)) +
+ggplot(daily_step_summary_data, aes(x = dow, y = mean_steps, fill = dow)) +
   geom_bar(stat = "identity") +
   geom_errorbar(width = 0.3, aes(ymin = mean_steps - sd_steps, ymax = mean_steps + sd_steps)) +
   ggtitle("Bar Plot") +
@@ -96,7 +96,7 @@ ggplot(data, aes(x = weather, y = steps, fill = weather)) +
  
 # histogram
 ggplot(data, aes(x = steps)) +
-  geom_histogram(bins = 10, fill = "steelblue", color = "white") +
+  geom_histogram(bins = 15, fill = "steelblue", color = "white") +
   ggtitle("Histogram") +
   scale_x_continuous(name = "Steps") +
   scale_y_continuous(name = "Count") +
